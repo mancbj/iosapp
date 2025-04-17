@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS从开发到发布完整指南</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAHtQTFRFAAAABQUFAAAA3Nzc7u7ubGxsAAAAJCQkAAAAAAAAEBAQAAAAAAAAcHBw3NzcyMjIBAQEGRkZNTU1ODg4GBgYCAgIaWlp5eXlvb29DQ0NMTExPDw8DAwMCQkJXl5e1tbWsrKyBgYGHx8fQEBAPT09FxcXBQUFYmJi3t7eubm5////+YhzUQAAACV0Uk5TAAIYVpzU8v3/ES+P0gMSMn+41QQfbLvlrzuOJlKgJUeXMHCyYoQbr9QAAAFKSURBVDjLfZLbcoMgEEBX0YAgGC9RY5Im6f//Y3dB04zaed/BmWE5LJE4QETKFWPUEPnWQcSiKmvKxepRFVVTQVCvqrosuD4YpKU2tOW6GDBpGxBFhplRYQYxCNJadxiVdU3dgJBSibb1kFr2lPOUcmgHGwBjnAuB89EzxHkKwIcAAgRZDwFGmP1pn+xQMB9SEADJ9KF9AMM0CyFpQQ4Pse9X+zwkZLEDfJgXlfvDYrwnAMf9s+f79Hh8YX48W27lAC/hfWv/NN+Kz3i57lyvj7zfP/gAfgOY11o7l2/n1MU4L1eBXwHg4sbYOZfrbSu7FX4LgG0TYjF2Nj6hbxB4o8L7pq7DKJR3QrJQgcAB5MkAHAJgsAIAEaGXxQYE+r8DEBlCJMgGYHlZA7CfziVWrJA0QNdbAMZrlRKE5QsAyfkNgJBPABR5DQCVJwD+/X74mZjDH7EWtPDHNs06AAAAAElFTkSuQmCC">
+    <style>
+        /* 苹果网站风格的全局样式 */
+        :root {
+            --apple-white: #ffffff;
+            --apple-black: #1d1d1f;
+            --apple-gray-light: #f5f5f7;
+            --apple-gray: #86868b;
+            --apple-gray-dark: #424245;
+            --apple-blue: #0066cc;
+            --apple-blue-light: #0071e3;
+            --apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--apple-font);
+            line-height: 1.5;
+            color: var(--apple-black);
+            background-color: var(--apple-white);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+        }
+        
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            letter-spacing: -0.015em;
+            margin-bottom: 30px;
+            color: var(--apple-black);
+        }
+        
+        h2 {
+            font-size: 32px;
+            line-height: 1.2;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            color: var(--apple-black);
+        }
+        
+        h3 {
+            font-size: 24px;
+            line-height: 1.2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--apple-black);
+        }
+        
+        p, li {
+            font-size: 17px;
+            line-height: 1.5;
+            color: var(--apple-gray-dark);
+        }
+        
+        a {
+            color: var(--apple-blue);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        a:hover {
+            color: var(--apple-blue-light);
+            text-decoration: underline;
+        }
+        
+        /* 页面布局 */
+        .page-container {
+            display: flex;
+            position: relative;
+            min-height: 100vh;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding-top: 60px;
+        }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 260px;
+            background-color: var(--apple-white);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 25px 20px;
+            position: fixed;
+            left: 50%;
+            margin-left: -650px; /* 总宽度的一半(1300/2)再减去侧边栏自身宽度的一半 */
+            top: 60px;
+            bottom: 0;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        
+        .sidebar h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: var(--apple-black);
+            padding: 0 0 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            margin-bottom: 12px;
+        }
+        
+        .sidebar a {
+            color: var(--apple-gray-dark);
+            text-decoration: none;
+            display: block;
+            padding: 8px 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+        
+        .sidebar a:hover {
+            background-color: var(--apple-gray-light);
+            color: var(--apple-black);
+            text-decoration: none;
+        }
+        
+        .sidebar a.active {
+            background-color: var(--apple-blue-light);
+            color: white;
+        }
+        
+        /* 主内容区样式 */
+        .main-content {
+            flex: 1;
+            padding: 40px 50px;
+            max-width: 1000px;
+            margin-left: 260px; /* 匹配侧边栏宽度 */
+            width: calc(100% - 260px);
+        }
+        
+        .content-header {
+            padding-bottom: 40px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+        
+        /* 卡片容器样式 */
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background-color: var(--apple-white);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 35px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        /* 步骤项样式 */
+        .step {
+            padding-left: 24px;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .step:before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background-color: var(--apple-blue);
+            border-radius: 50%;
+            position: absolute;
+            left: 8px;
+            top: 10px;
+        }
+        
+        /* 代码块样式 */
+        .code-block {
+            background-color: var(--apple-gray-light);
+            color: var(--apple-black);
+            border-radius: 10px;
+            padding: 18px;
+            overflow-x: auto;
+            font-family: 'SF Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* 流程图样式 */
+        .flow-chart {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+        
+        .flow-step {
+            flex: 1;
+            min-width: 150px;
+            background-color: var(--apple-gray-light);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 5px;
+            position: relative;
+            font-weight: 500;
+            color: var(--apple-black);
+        }
+        
+        .flow-step:not(:last-child):after {
+            content: "";
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230066cc'%3E%3Cpath d='M9.4 18.4l-.7-.7 5.6-5.6-5.7-5.7.7-.7 6.4 6.4-6.3 6.3z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        /* 提示框样式 */
+        .tip, .warning {
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        .tip {
+            background-color: rgba(52, 199, 89, 0.1);
+        }
+        
+        .tip strong {
+            color: rgb(52, 199, 89);
+        }
+        
+        .warning {
+            background-color: rgba(255, 149, 0, 0.1);
+        }
+        
+        .warning strong {
+            color: rgb(255, 149, 0);
+        }
+        
+        /* 资源链接按钮样式 */
+        .resource-link {
+            display: inline-block;
+            background-color: var(--apple-blue);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin: 15px 0;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .resource-link:hover {
+            background-color: var(--apple-blue-light);
+            text-decoration: none;
+            color: white;
+            transform: scale(1.03);
+        }
+        
+        /* 网格容器样式 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .grid-item {
+            background-color: var(--apple-gray-light);
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .grid-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .grid-item h4 {
+            margin-bottom: 10px;
+            color: var(--apple-black);
+            font-size: 18px;
+        }
+        
+        .grid-item p {
+            color: var(--apple-gray);
+            font-size: 15px;
+        }
+        
+        /* 移动导航开关 */
+        .mobile-menu-toggle {
+            display: none;
+            background-color: var(--apple-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        /* 响应式样式 */
+        @media (max-width: 1350px) {
+            .sidebar {
+                left: 0;
+                margin-left: 0;
+            }
+            
+            .page-container {
+                margin: 0;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                max-width: 800px;
+            }
+        }
+        
+        @media (max-width: 990px) {
+            .sidebar {
+                width: 230px;
+            }
+            
+            .main-content {
+                margin-left: 230px;
+                width: calc(100% - 230px);
+                padding: 30px;
+            }
+            
+            h1 {
+                font-size: 38px;
+            }
+            
+            h2 {
+                font-size: 28px;
+            }
+            
+            h3 {
+                font-size: 22px;
+            }
+            
+            .card {
+                padding: 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                padding: 15px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 25px 20px;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .sidebar-content {
+                display: none;
+            }
+            
+            .sidebar.active .sidebar-content {
+                display: block;
+            }
+            
+            .flow-step:not(:last-child):after {
+                content: "";
+                position: absolute;
+                right: 50%;
+                top: calc(100% - 5px);
+                transform: translateX(50%) rotate(90deg);
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+            
+            h3 {
+                font-size: 20px;
+            }
+            
+            .tools-logo span {
+                display: none;
+            }
+            
+            .tool-link {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+        
+        /* 添加工具导航栏相关样式 */
+        .tools-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            padding: 10px 0;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .tools-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow-x: auto;
+            padding: 0 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tools-logo {
+            font-weight: 600;
+            color: var(--apple-black);
+            flex-shrink: 0;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tools-logo img {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .tools-list {
+            display: flex;
+            list-style: none;
+            gap: 5px;
+            overflow-x: auto;
+            padding: 5px 0;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .tools-list::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tool-item {
+            flex-shrink: 0;
+        }
+        
+        .tool-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: var(--apple-gray-light);
+            border-radius: 20px;
+            transition: all 0.2s ease;
+            color: var(--apple-black);
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 500;
+            white-space: nowrap;
+            gap: 6px;
+        }
+        
+        .tool-link:hover {
+            background-color: var(--apple-blue-light);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .tool-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tool-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="tools-navbar">
+            <div class="tools-container">
+                <div class="tools-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16.7023 8.15344C16.5 8.23016 14.8489 9.05516 14.8489 11.1323C14.8489 13.559 16.9489 14.2796 17 14.2796C16.9943 14.3062 16.6864 15.3829 15.9261 16.4885C15.2614 17.4551 14.5682 18.4274 13.517 18.4274C12.4659 18.4274 12.1636 17.784 10.9545 17.784C9.78977 17.784 9.33523 18.4444 8.36932 18.4444C7.40341 18.4444 6.67045 17.5129 5.94886 16.5521C5.10227 15.4124 4.40341 13.6551 4.40341 11.9829C4.40341 9.24126 6.28409 7.80799 8.125 7.80799C9.13068 7.80799 9.96591 8.52458 10.592 8.52458C11.1875 8.52458 12.125 7.75231 13.2727 7.75231C13.7159 7.75231 15.142 7.80799 16.7023 8.15344ZM11.4375 6.28898C11.8125 5.83444 12.0966 5.19581 12.0966 4.55719C12.0966 4.45719 12.0852 4.35151 12.0682 4.26344C11.2614 4.28898 10.3068 4.85151 9.85227 5.38898C9.5 5.77685 9.16477 6.41548 9.16477 7.06548C9.16477 7.17685 9.18751 7.28898 9.19318 7.32048C9.25 7.33161 9.33523 7.34274 9.42045 7.34274C10.142 7.34274 11.0284 6.81662 11.4375 6.28898Z" fill="#A1A1A6"/>
+                    </svg>
+                    <span>iOS开发工具</span>
+                </div>
+                <ul class="tools-list">
+                    <li class="tool-item">
+                        <a href="https://developer.apple.com/xcode/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13.1429 1.5H2.85715C2.10477 1.5 1.5 2.10477 1.5 2.85715V13.1429C1.5 13.8952 2.10477 14.5 2.85715 14.5H13.1429C13.8952 14.5 14.5 13.8952 14.5 13.1429V2.85715C14.5 2.10477 13.8952 1.5 13.1429 1.5Z" stroke="currentColor" stroke-width="1.2"/>
+                                    <path d="M8 3.5L4 8L8 12.5L12 8L8 3.5Z" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            Xcode
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://cursor.sh" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 3L3 8L6.5 9.5M13 3L8 13L6.5 9.5M13 3L6.5 9.5" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            Cursor
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://developer.apple.com/sf-symbols/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 3.5L9.5 6.5H6.5L8 3.5Z" fill="currentColor"/>
+                                    <path d="M3.5 8L6.5 9.5V6.5L3.5 8Z" fill="currentColor"/>
+                                    <path d="M8 12.5L6.5 9.5H9.5L8 12.5Z" fill="currentColor"/>
+                                    <path d="M12.5 8L9.5 6.5V9.5L12.5 8Z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            SF 符号
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://developer.apple.com/testflight/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 2L9.5 6.5H6.5L8 2Z" fill="currentColor"/>
+                                    <path d="M8 2L2 7L8 14L14 7L8 2Z" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            TestFlight
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://www.appicon.co/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="3" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/>
+                                    <path d="M6 6L10 10" stroke="currentColor" stroke-width="1.2"/>
+                                    <path d="M10 6L6 10" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            App Icon Generator
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://theapplaunchpad.com" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="2.5" y="3.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/>
+                                    <line x1="2.5" y1="6.4" x2="13.5" y2="6.4" stroke="currentColor" stroke-width="1.2"/>
+                                    <circle cx="8" cy="10" r="1" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            AppLaunchPad
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://appstoreconnect.apple.com" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5Z" stroke="currentColor" stroke-width="1.2"/>
+                                    <path d="M8 4.5V8H11.5" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            App Store Connect
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://developer.apple.com/app-store/review/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 7L8 12L3 7" stroke="currentColor" stroke-width="1.2"/>
+                                    <path d="M8 12V3" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            App 审核
+                        </a>
+                    </li>
+                    <li class="tool-item">
+                        <a href="https://developer.apple.com/design/human-interface-guidelines/" target="_blank" class="tool-link">
+                            <div class="tool-icon">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 3.5C8 3.5 3 5.5 3 8C3 10.5 8 12.5 8 12.5C8 12.5 13 10.5 13 8C13 5.5 8 3.5 8 3.5Z" stroke="currentColor" stroke-width="1.2"/>
+                                    <circle cx="8" cy="8" r="1.5" stroke="currentColor" stroke-width="1.2"/>
+                                </svg>
+                            </div>
+                            HIG 指南
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="sidebar">
+            <button class="mobile-menu-toggle">显示/隐藏导航</button>
+            <div class="sidebar-content">
+                <h2>目录</h2>
+                <ul>
+                    <li><a href="#开发环境准备">开发环境准备</a></li>
+                    <li><a href="#开发流程">开发流程</a></li>
+                    <li><a href="#UI设计与实现">UI设计与实现</a></li>
+                    <li><a href="#测试阶段">测试阶段</a></li>
+                    <li><a href="#准备发布资源">准备发布资源</a></li>
+                    <li><a href="#App-Store-Connect-发布流程">App Store Connect 发布流程</a></li>
+                    <li><a href="#发布后维护">发布后维护</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="content-header">
+                <h1>iOS从开发到发布完整指南</h1>
+                <p>从环境搭建到 App Store 上架的详细教程</p>
+            </div>
+            
+            <div class="container">
+                <div class="card">
+                    <h2 id="开发环境准备">开发环境准备</h2>
+                    
+                    <div class="flow-chart">
+                        <div class="flow-step">安装 Xcode</div>
+                        <div class="flow-step">注册开发者账号</div>
+                        <div class="flow-step">配置证书</div>
+                        <div class="flow-step">安装辅助工具</div>
+                    </div>
+                    
+                    <h3>1. Xcode 安装与配置</h3>
+                    <div class="step">从 Mac App Store 下载并安装最新稳定版 Xcode (目前为 Xcode 15)</div>
+                    <div class="step">安装所需的 iOS SDK</div>
+                    <div class="step">配置 Apple 开发者账号
+                        <ul>
+                            <li>加入 Apple Developer Program (¥688/年)</li>
+                            <li>配置证书和描述文件</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tip">
+                        <strong>提示：</strong> 使用 Xcode 的稳定版本进行开发和提交，避免使用 Beta 版本构建发布版应用。
+                    </div>
+                    
+                    <h3>2. Cursor 编辑器设置</h3>
+                    <div class="step">下载并安装 Cursor 编辑器 (<a href="https://cursor.sh" target="_blank">https://cursor.sh</a>)</div>
+                    <div class="step">与 Xcode 项目集成</div>
+                    <div class="step">配置适合 Swift 和 SwiftUI 的插件</div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="开发流程">开发流程</h2>
+                    
+                    <h3>1. 项目初始化</h3>
+                    <div class="step">使用 Xcode 创建新项目
+                        <ul>
+                            <li>选择适当的模板 (App, Framework, Game 等)</li>
+                            <li>配置项目基本信息 (名称、Bundle ID、团队等)</li>
+                            <li>选择开发语言 (Swift) 和界面构建工具 (SwiftUI)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="grid-container">
+                        <div class="grid-item">
+                            <h4>App</h4>
+                            <p>创建标准 iOS 应用</p>
+                        </div>
+                        <div class="grid-item">
+                            <h4>Framework</h4>
+                            <p>创建可复用的代码库</p>
+                        </div>
+                        <div class="grid-item">
+                            <h4>Game</h4>
+                            <p>使用 SpriteKit 或其他游戏引擎</p>
+                        </div>
+                        <div class="grid-item">
+                            <h4>Document App</h4>
+                            <p>基于文档的应用</p>
+                        </div>
+                    </div>
+                    
+                    <h3>2. 架构设计</h3>
+                    <div class="step">设计数据模型
+                        <ul>
+                            <li>CoreData 模型设计</li>
+                            <li>实体关系设计</li>
+                        </ul>
+                    </div>
+                    <div class="step">确定应用架构 (MVVM, MVC 等)</div>
+                    <div class="step">规划主要功能模块</div>
+                    
+                    <h3>3. 迭代开发</h3>
+                    <div class="step">使用 Cursor 进行代码编写</div>
+                    <div class="step">功能模块分步实现</div>
+                    <div class="step">定期提交代码到版本控制系统</div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="UI设计与实现">UI设计与实现</h2>
+                    
+                    <h3>1. 界面设计</h3>
+                    <div class="step">创建线框图和原型设计</div>
+                    <div class="step">使用 SwiftUI 预览功能实时查看 UI 效果</div>
+                    <div class="step">遵循 Apple 人机界面指南 (HIG)</div>
+                    
+                    <h3>2. 资源准备</h3>
+                    <div class="step">使用 "SF 符号" 应用获取系统图标
+                        <div class="code-block">
+                            // 直接在 Swift 代码中引用图标名称
+                            Image(systemName: "star.fill")
+                        </div>
+                    </div>
+                    <div class="step">自定义图标和图像准备</div>
+                    <div class="step">适配不同屏幕尺寸和方向</div>
+                    
+                    <div class="warning">
+                        <strong>注意：</strong> 确保 UI 元素符合 Apple 的无障碍设计要求，包括足够的对比度和适当的字体大小。
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="测试阶段">测试阶段</h2>
+                    
+                    <h3>1. 模拟器测试</h3>
+                    <div class="step">在不同设备模拟器上测试</div>
+                    <div class="step">验证 UI 适配性</div>
+                    <div class="step">检查功能完整性</div>
+                    
+                    <h3>2. 实机测试</h3>
+                    <div class="step">在实际 iPhone 设备上部署测试版本</div>
+                    <div class="step">使用 Xcode 构建和部署到设备</div>
+                    <div class="step">测试实际硬件上的性能和体验</div>
+                    
+                    <h3>3. TestFlight 内部测试</h3>
+                    <div class="step">将应用上传到 TestFlight</div>
+                    <div class="step">邀请内部测试人员</div>
+                    <div class="step">收集反馈并进行迭代改进</div>
+                    
+                    <div class="tip">
+                        <strong>提示：</strong> TestFlight 可以支持最多 10,000 名外部测试人员，是获取大量用户反馈的好方法。
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="准备发布资源">准备发布资源</h2>
+                    
+                    <h3>1. App 图标制作</h3>
+                    <div class="step">使用 PowerPoint 设计基础图标</div>
+                    <div class="step">使用 App Icon Generator 生成各尺寸图标</div>
+                    <div class="step">确保符合 Apple 图标设计指南</div>
+                    
+                    <a href="https://www.appicon.co/" target="_blank" class="resource-link">App Icon Generator</a>
+                    
+                    <h3>2. App Store 截图准备</h3>
+                    <div class="step">使用 AppLaunchPad 制作精美截图</div>
+                    <div class="step">针对不同设备尺寸准备截图
+                        <ul>
+                            <li>iPhone (6.5 英寸和 5.5 英寸)</li>
+                            <li>iPad Pro (12.9 英寸)</li>
+                            <li>Apple Watch (如适用)</li>
+                        </ul>
+                    </div>
+                    <div class="step">使用 Topaz Gigapixel AI 优化截图分辨率和质量</div>
+                    
+                    <a href="https://theapplaunchpad.com/projects" target="_blank" class="resource-link">AppLaunchPad</a>
+                    
+                    <h3>3. 发布文案编写</h3>
+                    <div class="step">使用 Cursor 编写有吸引力的应用描述</div>
+                    <div class="step">准备关键词列表 (ASO 优化)</div>
+                    <div class="step">编写版本更新说明</div>
+                    <div class="step">准备隐私政策文档</div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="App-Store-Connect-发布流程">App Store Connect 发布流程</h2>
+                    
+                    <div class="flow-chart">
+                        <div class="flow-step">创建应用记录</div>
+                        <div class="flow-step">填写应用信息</div>
+                        <div class="flow-step">上传构建版本</div>
+                        <div class="flow-step">提交审核</div>
+                        <div class="flow-step">发布上线</div>
+                    </div>
+                    
+                    <h3>1. 创建应用记录</h3>
+                    <div class="step">登录 App Store Connect (<a href="https://appstoreconnect.apple.com" target="_blank">https://appstoreconnect.apple.com</a>)</div>
+                    <div class="step">点击"我的应用"，选择"+"创建新应用</div>
+                    <div class="step">填写基本信息:
+                        <ul>
+                            <li>平台 (iOS)</li>
+                            <li>应用名称</li>
+                            <li>主要语言</li>
+                            <li>Bundle ID (必须与 Xcode 项目匹配)</li>
+                            <li>SKU (内部跟踪用)</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>2. 填写应用信息</h3>
+                    <div class="step">上传所有准备好的素材:
+                        <ul>
+                            <li>App 图标 (1024×1024 像素)</li>
+                            <li>截图 (各尺寸设备)</li>
+                            <li>应用预览视频 (可选)</li>
+                        </ul>
+                    </div>
+                    <div class="step">填写详细信息:
+                        <ul>
+                            <li>应用副标题</li>
+                            <li>促销文本</li>
+                            <li>描述</li>
+                            <li>关键词</li>
+                            <li>支持网址</li>
+                            <li>营销网址 (可选)</li>
+                            <li>隐私政策网址</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>3. 版本信息</h3>
+                    <div class="step">设置应用分类</div>
+                    <div class="step">内容分级 (回答问卷)</div>
+                    <div class="step">版权信息</div>
+                    <div class="step">联系人信息</div>
+                    <div class="step">审核信息 (包括测试账号和特殊说明)</div>
+                    
+                    <h3>4. 构建上传</h3>
+                    <div class="step">在 Xcode 中准备发布版本
+                        <ul>
+                            <li>选择 "Generic iOS Device" 作为目标</li>
+                            <li>选择 "Product" > "Archive"</li>
+                        </ul>
+                    </div>
+                    <div class="step">在归档管理器中验证应用</div>
+                    <div class="step">通过 Xcode 或 Transporter 应用上传构建版本</div>
+                    <div class="step">在 App Store Connect 中选择上传的构建版本</div>
+                    
+                    <h3>5. 提交审核</h3>
+                    <div class="step">确认所有信息完整</div>
+                    <div class="step">回答隐私政策问题</div>
+                    <div class="step">声明是否使用加密技术</div>
+                    <div class="step">选择发布选项:
+                        <ul>
+                            <li>审核通过后自动发布</li>
+                            <li>手动发布</li>
+                            <li>特定日期发布</li>
+                        </ul>
+                    </div>
+                    <div class="step">提交审核申请</div>
+                    
+                    <h3>6. 审核过程</h3>
+                    <div class="step">等待 Apple 审核 (通常 24-48 小时)</div>
+                    <div class="step">处理可能的拒绝原因并重新提交</div>
+                    <div class="step">审核通过后根据选择的方式发布</div>
+                    
+                    <div class="warning">
+                        <strong>注意：</strong> 审核过程中 Apple 可能会拒绝您的应用。请确保仔细阅读拒绝原因，进行必要修改后重新提交。
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 id="发布后维护">发布后维护</h2>
+                    
+                    <h3>1. 数据分析与监控</h3>
+                    <div class="step">集成 App Analytics</div>
+                    <div class="step">监控用户反馈和评分</div>
+                    <div class="step">分析使用数据和崩溃报告</div>
+                    
+                    <h3>2. 更新与迭代</h3>
+                    <div class="step">根据用户反馈进行功能改进</div>
+                    <div class="step">修复 bug 并发布更新版本</div>
+                    <div class="step">持续优化应用性能</div>
+                    
+                    <h3>3. ASO 优化</h3>
+                    <div class="step">定期更新关键词和描述</div>
+                    <div class="step">根据竞争情况调整策略</div>
+                    <div class="step">针对重要节日和事件进行促销更新</div>
+                    
+                    <div class="tip">
+                        <strong>提示：</strong> 定期查看竞争对手的应用并分析其更新和促销策略，可以获取有价值的市场洞察。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        });
+        
+        // 为当前滚动位置的标题添加高亮
+        function highlightCurrentSection() {
+            const scrollPosition = window.scrollY;
+            const sections = document.querySelectorAll('h2[id]');
+            const navLinks = document.querySelectorAll('.sidebar a');
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionId = section.getAttribute('id');
+                
+                if (scrollPosition >= sectionTop) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + sectionId) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 初始化移动端显示
+        if (window.innerWidth <= 768) {
+            document.querySelector('.sidebar').classList.remove('active');
+        } else {
+            document.querySelector('.sidebar').classList.add('active');
+        }
+        
+        // 监听滚动事件以高亮当前章节
+        window.addEventListener('scroll', highlightCurrentSection);
+        
+        // 页面加载后高亮当前章节
+        document.addEventListener('DOMContentLoaded', highlightCurrentSection);
+    </script>
+</body>
+</html> 
